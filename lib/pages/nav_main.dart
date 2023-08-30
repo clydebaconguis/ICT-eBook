@@ -90,10 +90,13 @@ class _NavMainState extends State<NavMain> {
             // backgroundColor: const Color(0xff500a34),
             title: Row(
               children: [
-                Image.asset(
-                  "img/liceo-logo.png",
-                  height: 48,
-                  width: 48,
+                CircleAvatar(
+                  radius: 18,
+                  backgroundColor: Colors.transparent,
+                  child: Image.asset("img/liceo-logo.png", fit: BoxFit.contain),
+                ),
+                const SizedBox(
+                  width: 4,
                 ),
                 !isWide
                     ? Expanded(

@@ -1,6 +1,6 @@
 name: ebooks
 description: A new Flutter project.
-version: 1.0.1+9
+version: 1.0.1+13
 publish_to: "none" # Remove this line if you wish to publish to pub.dev
 environment:
     sdk: ">=3.0.5 <4.0.0"

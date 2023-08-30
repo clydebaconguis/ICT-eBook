@@ -15,7 +15,7 @@ final pages = [
   ),
   const PageData(
     icon: Icons.download_for_offline_rounded,
-    title: "Donwload Offline",
+    title: "Download Offline",
     bgColor: Color(0xfffab800),
     textColor: Color(0xff3b1790),
   ),

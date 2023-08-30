@@ -4,11 +4,14 @@ import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 
 class CallApi {
-  // final String _ckIpv4 = 'https://app.cklms.ph/';
-  // final String _domain = 'https://app.cklms.ph/api/';
+  final String _ckIpv4 = 'https://app.cklms.ph/';
+  final String _domain = 'https://app.cklms.ph/api/';
 
-  final String _ckIpv4 = 'http://192.168.0.105:8000/';
-  final String _domain = 'http://192.168.0.105:8000/api/';
+  // final String _ckIpv4 = 'https://lms.smsaccess.net/';
+  // final String _domain = 'https://lms.smsaccess.net/api/';
+
+  // final String _ckIpv4 = 'http://192.168.0.105:8000/';
+  // final String _domain = 'http://192.168.0.105:8000/api/';
   getHost() {
     // var domain = await _loadSavedDomainName();
     // return '$domain/';
@@ -41,9 +44,10 @@ class CallApi {
 
   login(data, apiUrl) async {
     // var token = await getToken();
-    var fullUrl =
-        '$_domain$apiUrl?email=${data['email']}&password=${data['password']}';
-    return await http.post(Uri.parse(fullUrl));
+    // var fullUrl =
+    //     '$_domain$apiUrl?email=${data['email']}&password=${data['password']}';
+    var fullUrl = '$_domain$apiUrl';
+    return await http.post(Uri.parse(fullUrl), body: data);
   }
 
   // getData(apiUrl) async {
