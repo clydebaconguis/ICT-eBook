@@ -137,10 +137,7 @@ class _NavPdfState extends State<NavPdf> {
           flexibleSpace: Container(
             decoration: const BoxDecoration(
               gradient: LinearGradient(
-                colors: [
-                  Color.fromRGBO(141, 31, 31, 1),
-                  Color.fromRGBO(141, 31, 31, 1),
-                ],
+                colors: [Color(0xFF221484), Color(0xFF221484)],
                 begin: Alignment.topLeft,
                 end: Alignment.bottomRight,
               ),

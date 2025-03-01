@@ -4,8 +4,9 @@ import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 
 class CallApi {
-  final String _ckIpv4 = 'https://app.cklms.ph/';
-  final String _domain = 'https://app.cklms.ph/api/';
+  final String _ckIpv4 = 'https://lms.smsaccess.net/';
+  final String _domain = 'https://jmc.cklms.ph/api/';
+  final String _cover = 'https://jmc.cklms.ph/';
 
   // final String _ckIpv4 = 'https://lms.smsaccess.net/';
   // final String _domain = 'https://lms.smsaccess.net/api/';
@@ -20,6 +21,10 @@ class CallApi {
 
   getDomain() {
     return _domain;
+  }
+
+  getCover() {
+    return _cover;
   }
 
   postData(data, apiUrl) async {

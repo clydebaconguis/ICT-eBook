@@ -1,0 +1,19 @@
+{
+  "editor.formatOnSave": true,
+  "editor.defaultFormatter": "esbenp.prettier-vscode",
+  "editor.fontLigatures": true,
+  "editor.fontSize": 15,
+  "[php]": {
+      "editor.defaultFormatter": "DEVSENSE.phptools-vscode",
+      "editor.tabSize": 4
+  },
+  "editor.fontFamily": "Monaspace Krypton, 'Courier New', monospace",
+  "[blade]": {
+      "editor.defaultFormatter": "shufo.vscode-blade-formatter"
+  },
+  "editor.tabSize": 4,
+  "editor.insertSpaces": true, // Use spaces for tabs
+
+  "bladeFormatter.format.indentSize": 4,
+  "bladeFormatter.format.wrapAttributes": "auto" // Other options can be 'force' or 'preserve'
+}

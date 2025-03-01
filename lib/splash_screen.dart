@@ -1,5 +1,4 @@
 import 'dart:io';
-
 import 'package:ebooks/app_util.dart';
 import 'package:ebooks/pages/nav_main.dart';
 import 'package:ebooks/signup_login/sign_in.dart';
@@ -21,71 +20,93 @@ class Splash extends StatefulWidget {
 }
 
 class _SplashState extends State<Splash> {
-  late bool loggedIn = false;
-  late bool expired = false;
+  bool loggedIn = false;
+  bool expired = false;
 
-  checkLoginStatus() async {
-    SharedPreferences localStorage = await SharedPreferences.getInstance();
-    var token = localStorage.getString('token');
-    if (token != null) {
-      setState(() {
-        loggedIn = true;
-      });
+  Future<void> checkLoginStatus() async {
+    try {
+      SharedPreferences localStorage = await SharedPreferences.getInstance();
+      var token = localStorage.getString('token');
+      if (token != null) {
+        setState(() {
+          loggedIn = true;
+        });
+      }
+    } catch (e) {
+      debugPrint("Error checking login status: $e");
     }
   }
 
-  checkExpiration() async {
-    List<FileSystemEntity> result = await AppUtil().readBooks();
-    SharedPreferences localStorage = await SharedPreferences.getInstance();
-    var exp = localStorage.getString('expiry');
-    // var expiration = '2023-08-09';
-    if (exp != null) {
-      final expDate = DateTime.parse(exp);
-      final now = DateTime.now();
-      if (now.isAfter(expDate) || now.isAtSameMomentAs(expDate)) {
-        EasyLoading.showInfo('Subscription Expired!');
-        if (result.isNotEmpty) {
-          for (var item in result) {
-            final directory = Directory(item.path);
-            directory.deleteSync(recursive: true);
-            // print("Deleted directory: ${directory.path}");
+  Future<void> checkExpiration() async {
+    try {
+      List<FileSystemEntity> result = await AppUtil().readBooks();
+      SharedPreferences localStorage = await SharedPreferences.getInstance();
+      var exp = localStorage.getString('expiry');
+
+      if (exp != null) {
+        final expDate = DateTime.tryParse(exp);
+        final now = DateTime.now();
+
+        if (expDate != null &&
+            (now.isAfter(expDate) || now.isAtSameMomentAs(expDate))) {
+          EasyLoading.showInfo('Subscription Expired!');
+          await deleteDownloadedBooks(result);
+          await logout();
+          if (mounted) {
+            setState(() {
+              expired = true;
+            });
           }
-        } else {
-          // print("No books found.");
         }
-        logout();
-        if (mounted) {
-          setState(() {
-            expired = true;
-          });
+      } else {
+        await checkLoginStatus();
+      }
+    } catch (e) {
+      debugPrint("Error checking expiration: $e");
+    }
+  }
+
+  Future<void> deleteDownloadedBooks(List<FileSystemEntity> books) async {
+    try {
+      if (books.isNotEmpty) {
+        for (var item in books) {
+          final directory = Directory(item.path);
+          if (await directory.exists()) {
+            await directory.delete(recursive: true);
+          }
         }
       }
-    } else {
-      checkLoginStatus();
+    } catch (e) {
+      debugPrint("Error deleting downloaded books: $e");
     }
   }
 
-  logout() async {
-    SharedPreferences localStorage = await SharedPreferences.getInstance();
-    await localStorage.clear();
+  Future<void> logout() async {
+    try {
+      SharedPreferences localStorage = await SharedPreferences.getInstance();
+      await localStorage.clear();
+    } catch (e) {
+      debugPrint("Error during logout: $e");
+    }
   }
 
   @override
   void initState() {
+    super.initState();
     configLoading();
     checkExpiration();
     changeStatusBarColor(Colors.white);
-    super.initState();
   }
 
-  changeStatusBarColor(Color color) async {
-    if (!kIsWeb) {
-      await FlutterStatusbarcolor.setStatusBarColor(color);
-      if (useWhiteForeground(color)) {
-        FlutterStatusbarcolor.setStatusBarWhiteForeground(true);
-      } else {
-        FlutterStatusbarcolor.setStatusBarWhiteForeground(false);
+  Future<void> changeStatusBarColor(Color color) async {
+    try {
+      if (!kIsWeb) {
+        await FlutterStatusbarcolor.setStatusBarColor(color);
+        FlutterStatusbarcolor.setStatusBarWhiteForeground(
+            useWhiteForeground(color));
       }
+    } catch (e) {
+      debugPrint("Error changing status bar color: $e");
     }
   }
 
@@ -109,8 +130,7 @@ class _SplashState extends State<Splash> {
   Widget build(BuildContext context) {
     return MaterialApp(
       theme: ThemeData(
-        textTheme: GoogleFonts
-            .poppinsTextTheme(), // Apply Poppins font to the entire app
+        textTheme: GoogleFonts.poppinsTextTheme(),
       ),
       debugShowCheckedModeBanner: false,
       title: '',
@@ -118,12 +138,10 @@ class _SplashState extends State<Splash> {
         splashIconSize: 100,
         duration: 2000,
         centered: true,
-        splash: 'img/liceo-logo.png',
+        splash: 'img/jmc-logo.png',
         nextScreen: expired
             ? const SignIn()
-            : loggedIn
-                ? const MyNav()
-                : const Welcome(),
+            : (loggedIn ? const MyNav() : const Welcome()),
         splashTransition: SplashTransition.sizeTransition,
         pageTransitionType: PageTransitionType.fade,
         backgroundColor: Colors.white,

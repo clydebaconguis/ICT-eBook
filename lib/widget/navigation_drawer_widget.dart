@@ -130,10 +130,7 @@ class _NavigationDrawerWidgetState extends State<NavigationDrawerWidget> {
           child: Container(
             decoration: const BoxDecoration(
               gradient: LinearGradient(
-                colors: [
-                  Color.fromRGBO(141, 31, 31, 1),
-                  Color.fromRGBO(141, 31, 31, 1),
-                ],
+                colors: [Color(0xFF221484), Color(0xFF221484)],
                 begin: Alignment.topRight,
                 end: Alignment.bottomLeft,
               ),
@@ -363,7 +360,7 @@ class _NavigationDrawerWidgetState extends State<NavigationDrawerWidget> {
               ? const Image(
                   width: 50,
                   height: 50,
-                  image: AssetImage("img/liceo-logo.png"),
+                  image: AssetImage("img/jmc-logo.png"),
                 )
               : null,
         )
@@ -376,13 +373,13 @@ class _NavigationDrawerWidgetState extends State<NavigationDrawerWidget> {
                 const Image(
                   width: 50,
                   height: 50,
-                  image: AssetImage("img/liceo-logo.png"),
+                  image: AssetImage("img/jmc-logo.png"),
                 ),
               const SizedBox(width: 16),
               RichText(
                 textAlign: TextAlign.center,
                 text: TextSpan(
-                    text: 'ICT',
+                    text: 'JMC',
                     style: GoogleFonts.prompt(
                       fontSize: 30,
                       fontWeight: FontWeight.bold,
@@ -390,7 +387,7 @@ class _NavigationDrawerWidgetState extends State<NavigationDrawerWidget> {
                     ),
                     children: [
                       TextSpan(
-                        text: ' e',
+                        text: ' E-',
                         style: GoogleFonts.prompt(
                           color: const Color.fromRGBO(242, 167, 0, 1),
                           fontSize: 30,

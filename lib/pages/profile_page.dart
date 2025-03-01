@@ -4,6 +4,7 @@ import 'package:ebooks/pages/nav_main.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import '../signup_login/sign_in.dart';
 import '../user/user.dart';
 import '../user/user_data.dart';
 
@@ -33,6 +34,59 @@ class _ProfilePageState extends State<ProfilePage> {
     });
   }
 
+  logout() async {
+    SharedPreferences localStorage = await SharedPreferences.getInstance();
+    await localStorage.clear();
+    // EasyLoading.dismiss();
+  }
+
+  Future<void> showLogoutConfirmationDialog(BuildContext context) async {
+    return showDialog<void>(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Text(
+            'Logout',
+            style: GoogleFonts.poppins(fontWeight: FontWeight.bold),
+          ),
+          content: Text(
+            'Are you sure you want to log out?',
+            style: GoogleFonts.poppins(),
+          ),
+          actions: <Widget>[
+            TextButton(
+              onPressed: () {
+                // Close the dialog and do nothing (cancel logout)
+                Navigator.of(context).pop();
+              },
+              child: Text(
+                'Cancel',
+                style: GoogleFonts.poppins(
+                    fontWeight: FontWeight.bold, color: Colors.red),
+              ),
+            ),
+            TextButton(
+              onPressed: () {
+                // Close the dialog and perform logout
+                Navigator.of(context).pop();
+                logout();
+                Navigator.of(context).pushAndRemoveUntil(
+                    MaterialPageRoute(
+                      builder: (context) => const SignIn(),
+                    ),
+                    (Route<dynamic> route) => false);
+              },
+              child: Text(
+                'Logout',
+                style: GoogleFonts.poppins(fontWeight: FontWeight.bold),
+              ),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     // final double height = MediaQuery.of(context).size.height;
@@ -42,45 +96,28 @@ class _ProfilePageState extends State<ProfilePage> {
           backgroundColor: Colors.white,
           resizeToAvoidBottomInset: false,
           appBar: AppBar(
+            backgroundColor: Colors.white, // Light background
+            elevation: 0, // Remove shadow for a cleaner look
+            iconTheme: const IconThemeData(color: Colors.black), // Dark icons
             leading: IconButton(
               icon: const Icon(Icons.arrow_back),
               onPressed: () {
                 Navigator.of(context).pushAndRemoveUntil(
-                    MaterialPageRoute(
-                      builder: (context) => const MyNav(),
-                    ),
-                    (Route<dynamic> route) => false);
+                  MaterialPageRoute(builder: (context) => const MyNav()),
+                  (Route<dynamic> route) => false,
+                );
               },
             ),
-            title: Row(
-              children: [
-                Expanded(
-                  child: Text(
-                    "Profile",
-                    style: GoogleFonts.prompt(
-                      textStyle: const TextStyle(
-                          color: Colors.white,
-                          fontWeight: FontWeight.w900,
-                          fontSize: 18),
-                    ),
-                    overflow: TextOverflow.ellipsis,
-                    maxLines: 1,
-                    softWrap: true,
-                  ),
-                ),
-              ],
-            ),
-            flexibleSpace: Container(
-              decoration: const BoxDecoration(
-                gradient: LinearGradient(
-                  colors: [
-                    Color.fromRGBO(141, 31, 31, 1),
-                    Color.fromRGBO(141, 31, 31, 1),
-                  ],
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
+            title: Text(
+              "Profile",
+              style: GoogleFonts.prompt(
+                textStyle: const TextStyle(
+                  color: Colors.black, // Dark text
+                  fontSize: 18,
                 ),
               ),
+              overflow: TextOverflow.ellipsis,
+              maxLines: 1,
             ),
           ),
           body: SingleChildScrollView(
@@ -129,7 +166,7 @@ class _ProfilePageState extends State<ProfilePage> {
                                           Color.fromARGB(255, 140, 228, 243),
                                       radius: 60.0,
                                       backgroundImage: AssetImage(
-                                        'img/anonymous.jpg', // Replace with the actual profile picture URL
+                                        'img/profile.png', // Replace with the actual profile picture URL
                                       ),
                                     ),
                                     const SizedBox(height: 22),
@@ -151,18 +188,43 @@ class _ProfilePageState extends State<ProfilePage> {
                                             : 'Not Specified'),
                                     const Divider(),
                                     buildProfileItem(
-                                        Icons.school,
-                                        'Grade Level',
-                                        grade.isNotEmpty
-                                            ? grade
-                                            : 'Not Specified'),
+                                      Icons.school,
+                                      'Grade Level',
+                                      grade.isNotEmpty
+                                          ? grade
+                                          : 'Not Specified',
+                                    ),
                                     const Divider(),
                                     buildProfileItem(
-                                        Icons.email,
-                                        'Email',
-                                        user.email.isNotEmpty
-                                            ? user.email
-                                            : 'Not Specified'),
+                                      Icons.email,
+                                      'Email',
+                                      user.email.isNotEmpty
+                                          ? user.email
+                                          : 'Not Specified',
+                                    ),
+                                    const SizedBox(height: 20),
+                                    ElevatedButton(
+                                      onPressed: () {
+                                        showLogoutConfirmationDialog(context);
+                                      },
+                                      style: ElevatedButton.styleFrom(
+                                        backgroundColor: Colors.redAccent,
+                                        padding: const EdgeInsets.symmetric(
+                                            horizontal: 32, vertical: 12),
+                                        shape: RoundedRectangleBorder(
+                                          borderRadius:
+                                              BorderRadius.circular(8),
+                                        ),
+                                      ),
+                                      child: const Text(
+                                        'Logout',
+                                        style: TextStyle(
+                                          fontSize: 16,
+                                          fontWeight: FontWeight.bold,
+                                          color: Colors.white,
+                                        ),
+                                      ),
+                                    )
                                   ],
                                 ),
                               ),

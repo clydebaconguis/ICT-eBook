@@ -1,4 +1,5 @@
 import 'package:ebooks/pages/all_books.dart';
+import 'package:ebooks/pages/profile_page.dart';
 import 'package:ebooks/provider/navigation_provider.dart';
 import 'package:ebooks/signup_login/sign_in.dart';
 import 'package:ebooks/widget/navigation_drawer_widget.dart';
@@ -30,7 +31,7 @@ class _NavMainState extends State<NavMain> {
   @override
   void initState() {
     getUser();
-    changeStatusBarColor(const Color.fromRGBO(141, 31, 31, 1));
+    changeStatusBarColor(const Color(0xFF221484));
     super.initState();
   }
 
@@ -64,74 +65,56 @@ class _NavMainState extends State<NavMain> {
   @override
   Widget build(BuildContext context) => LayoutBuilder(
           builder: (BuildContext context, BoxConstraints constraints) {
-        bool isWide = constraints.maxWidth > 500;
+        // bool isWide = constraints.maxWidth > 500;
 
         return Scaffold(
           drawer: const NavigationDrawerWidget(),
           appBar: AppBar(
-            toolbarHeight: constraints.maxWidth > 1000 ? 80 : null,
+            backgroundColor: Colors.white, // Set AppBar background to white
+            toolbarHeight: constraints.maxWidth >= 1000 ? 80 : kToolbarHeight,
             elevation: 0,
-            leadingWidth: constraints.maxWidth > 1000 ? 10 : null,
+            iconTheme:
+                const IconThemeData(color: Colors.black), // Set icons to dark
             leading:
-                constraints.maxWidth > 1000 ? const SizedBox.shrink() : null,
+                constraints.maxWidth >= 1000 ? const SizedBox.shrink() : null,
             titleSpacing: 0,
-            flexibleSpace: Container(
-              decoration: const BoxDecoration(
-                gradient: LinearGradient(
-                  colors: [
-                    Color.fromRGBO(141, 31, 31, 1),
-                    Color.fromRGBO(141, 31, 31, 1),
-                  ],
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
-                ),
-              ),
-            ),
-            // backgroundColor: const Color(0xff500a34),
             title: Row(
               children: [
                 CircleAvatar(
                   radius: 18,
                   backgroundColor: Colors.transparent,
-                  child: Image.asset("img/liceo-logo.png", fit: BoxFit.contain),
+                  child: Image.asset("img/jmc-logo.png", fit: BoxFit.contain),
                 ),
-                const SizedBox(
-                  width: 4,
-                ),
-                !isWide
-                    ? Expanded(
-                        child: Text(
-                          "Liceo De Cagayan",
-                          style: GoogleFonts.prompt(
-                            textStyle: const TextStyle(
-                              color: Colors.white,
-                              fontWeight: FontWeight.bold,
-                              fontSize: 18,
-                            ),
-                          ),
-                          overflow: TextOverflow.ellipsis,
-                          maxLines: 1,
-                          softWrap: true,
-                        ),
-                      )
-                    : Padding(
-                        padding: const EdgeInsets.only(left: 10),
-                        child: Text(
-                          "Liceo De Cagayan",
-                          style: GoogleFonts.prompt(
-                            textStyle: TextStyle(
-                              color: Colors.white,
-                              fontWeight: FontWeight.bold,
-                              fontSize: constraints.maxWidth >= 1000 ? 30 : 18,
-                            ),
-                          ),
-                          overflow: TextOverflow.ellipsis,
-                          maxLines: 1,
-                          softWrap: true,
-                        ),
+                const SizedBox(width: 4),
+                Expanded(
+                  child: Text(
+                    "JMC E-Book",
+                    style: GoogleFonts.prompt(
+                      textStyle: TextStyle(
+                        fontSize: constraints.maxWidth >= 1000 ? 30 : 18,
+                        color: Colors.black87, // Set text color to black
                       ),
+                    ),
+                    overflow: TextOverflow.ellipsis,
+                    maxLines: 1,
+                  ),
+                ),
               ],
             ),
+            actions: [
+              Padding(
+                padding: const EdgeInsets.all(8.0),
+                child: IconButton(
+                  onPressed: () => Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                        builder: (context) => const ProfilePage()),
+                  ),
+                  icon: const Icon(Icons.person),
+                  tooltip: 'Profile',
+                ),
+              ),
+            ],
           ),
           body: Row(
             children: [

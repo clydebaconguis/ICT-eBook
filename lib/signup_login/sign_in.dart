@@ -27,8 +27,8 @@ class _SignInState extends State<SignIn> {
       } else {
         FlutterStatusbarcolor.setStatusBarWhiteForeground(false);
       }
-    }
-  }
+    } 
+  } 
 
   @override
   void initState() {
@@ -117,7 +117,7 @@ class _Logo extends StatelessWidget {
         CircleAvatar(
           radius: isSmallScreen ? 60 : 90,
           backgroundColor: Colors.transparent,
-          child: Image.asset("img/liceo-logo.png"),
+          child: Image.asset("img/jmc-logo.png"),
         ),
         Padding(
             padding: isSmallScreen
@@ -335,9 +335,8 @@ class __FormContentState extends State<_FormContent> {
             width: double.infinity,
             child: ElevatedButton(
               style: ElevatedButton.styleFrom(
-                backgroundColor: isButtonEnabled
-                    ? const Color.fromRGBO(141, 31, 31, 1)
-                    : Colors.grey,
+                backgroundColor:
+                    isButtonEnabled ? const Color(0xFF221484) : Colors.grey,
                 shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(4)),
               ),

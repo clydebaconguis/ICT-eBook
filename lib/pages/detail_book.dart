@@ -2,8 +2,9 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
-import 'package:cached_network_image/cached_network_image.dart';
+// import 'package:cached_network_image/cached_network_image.dart';
 import 'package:dio/dio.dart';
+// import 'package:ebooks/app_util.dart';
 import 'package:ebooks/models/pdf_tile.dart';
 import 'package:ebooks/pages/nav_pdf.dart';
 import 'package:ebooks/signup_login/sign_in.dart';
@@ -28,7 +29,9 @@ class DetailBookPage extends StatefulWidget {
 }
 
 class _DetailBookPageState extends State<DetailBookPage> {
+  Color theme = Colors.white;
   String mainHost = CallApi().getHost();
+  String getCover = CallApi().getCover();
   double _diskSpace = 0;
   bool lowStorage = false;
   var parts = [];
@@ -46,6 +49,7 @@ class _DetailBookPageState extends State<DetailBookPage> {
   String pdfTitle = '';
   bool downloadEnabled = false;
   bool finished = false;
+  int itemdone = 0;
 
   checkIfBookExist() async {
     if (mounted) {
@@ -115,7 +119,7 @@ class _DetailBookPageState extends State<DetailBookPage> {
   }
 
   downloadImage(String foldr, String filename, String imgUrl) async {
-    String host = "$mainHost$imgUrl";
+    String host = "$getCover$imgUrl";
     var savePath = '$foldr$filename';
     // print(savePath);
     var dio = Dio();
@@ -129,21 +133,33 @@ class _DetailBookPageState extends State<DetailBookPage> {
           followRedirects: false,
           receiveTimeout: const Duration(seconds: 60),
         ),
+        onReceiveProgress: (received, total) {
+          if (total != -1) {
+            EasyLoading.showProgress(received / total,
+                status: 'finishing up...');
+          }
+        },
       );
       var file = File(savePath);
       var raf = file.openSync(mode: FileMode.write);
       // response.data is List<int> type
       raf.writeFromSync(response.data);
       await raf.close();
-      // print("image dowloaded successfully");
+      print("Image downloaded successfully");
+      return true;
     } catch (e) {
       debugPrint(e.toString());
-      // print("image failed to download");
+      print("image failed to download");
+      return true;
     }
   }
 
   _fetchParts() async {
-    appDir = await getApplicationSupportDirectory();
+    try {
+      appDir = await getApplicationSupportDirectory();
+    } catch (e) {
+      debugPrint(e.toString());
+    }
     CallApi().getPublicData('bookchapter2/${widget.bookInfo.bookid}').then(
       (response) {
         if (mounted) {
@@ -157,10 +173,10 @@ class _DetailBookPageState extends State<DetailBookPage> {
               // print(chapters);
               lessons = results['lessons'] ?? [];
               bookCoverUrl = results['bookcover'] ?? '';
-              // print(bookCoverUrl);
-              // print(lessons);
+              print(bookCoverUrl);
+              print(lessons);
               lessonLength = lessons.length;
-              // print(lessonLength);
+              print('lessons length: $lessonLength');
             },
           );
         }
@@ -192,7 +208,7 @@ class _DetailBookPageState extends State<DetailBookPage> {
       final Directory appDirFolder =
           Directory("${appDir.path}/${widget.bookInfo.title}/");
       bookNewFolder = await appDirFolder.create(recursive: true);
-      downloadImage(bookNewFolder.path, "cover_image", bookCoverUrl);
+      // downloadImage(bookNewFolder.path, "cover_image", bookCoverUrl);
 
       if (parts.isNotEmpty) {
         for (var part in parts) {
@@ -278,10 +294,13 @@ class _DetailBookPageState extends State<DetailBookPage> {
     if (mounted) {
       setState(() {
         finished = true;
+        downloadFutures.clear();
       });
     }
     saveCurrentBook(widget.bookInfo.title);
-    navigateToMainNav("${bookNewFolder.path}cover_image");
+    if (await downloadImage(bookNewFolder.path, "cover_image", bookCoverUrl)) {
+      navigateToMainNav("${bookNewFolder.path}cover_image");
+    }
   }
 
   navigateToMainNav(String path) {
@@ -328,19 +347,24 @@ class _DetailBookPageState extends State<DetailBookPage> {
         onReceiveProgress: (received, total) {
           if (total != -1) {
             setState(() {
-              if (pdfTitle != pdfInfo.title) {
-                pdfTitle = pdfInfo.title;
-              }
+              // if (pdfTitle != pdfInfo.title) {
+              //   pdfTitle = pdfInfo.title;
+              // }
               downloadProgress = received / total;
             });
           }
         },
       );
 
+      setState(() {
+        pdfTitle = "Progress for ${pdfInfo.title}";
+      });
+
       final file = File(savePath);
       await file.writeAsBytes(response.data);
 
       setState(() {
+        itemdone++;
         downloadProgress = 1.0; // Set progress to 100% after download
       });
     } catch (e) {
@@ -356,11 +380,11 @@ class _DetailBookPageState extends State<DetailBookPage> {
         return AlertDialog(
           title: Text(
             'Download ${widget.bookInfo.title}?',
-            style: GoogleFonts.poppins(fontWeight: FontWeight.bold),
+            style: GoogleFonts.workSans(fontWeight: FontWeight.bold),
           ),
           content: Text(
             'Don\'t interrupt while book is being downloaded.',
-            style: GoogleFonts.poppins(),
+            style: GoogleFonts.workSans(),
           ),
           actions: <Widget>[
             TextButton(
@@ -370,7 +394,7 @@ class _DetailBookPageState extends State<DetailBookPage> {
               },
               child: Text(
                 'Cancel',
-                style: GoogleFonts.poppins(
+                style: GoogleFonts.workSans(
                     fontWeight: FontWeight.bold, color: Colors.red),
               ),
             ),
@@ -386,7 +410,7 @@ class _DetailBookPageState extends State<DetailBookPage> {
               },
               child: Text(
                 'Download',
-                style: GoogleFonts.poppins(fontWeight: FontWeight.bold),
+                style: GoogleFonts.workSans(fontWeight: FontWeight.bold),
               ),
             ),
           ],
@@ -403,11 +427,11 @@ class _DetailBookPageState extends State<DetailBookPage> {
         return AlertDialog(
           title: Text(
             'Remove ${widget.bookInfo.title}?',
-            style: GoogleFonts.poppins(fontWeight: FontWeight.bold),
+            style: GoogleFonts.workSans(fontWeight: FontWeight.bold),
           ),
           content: Text(
             'This will remove the book and its associated lessons from your phone.',
-            style: GoogleFonts.poppins(),
+            style: GoogleFonts.workSans(),
           ),
           actions: <Widget>[
             TextButton(
@@ -417,7 +441,7 @@ class _DetailBookPageState extends State<DetailBookPage> {
               },
               child: Text(
                 'Cancel',
-                style: GoogleFonts.poppins(
+                style: GoogleFonts.workSans(
                     fontWeight: FontWeight.bold, color: Colors.red),
               ),
             ),
@@ -434,7 +458,7 @@ class _DetailBookPageState extends State<DetailBookPage> {
               },
               child: Text(
                 'Confirm',
-                style: GoogleFonts.poppins(fontWeight: FontWeight.bold),
+                style: GoogleFonts.workSans(fontWeight: FontWeight.bold),
               ),
             ),
           ],
@@ -459,6 +483,9 @@ class _DetailBookPageState extends State<DetailBookPage> {
         if (mounted) {
           setState(() {
             existBook = false;
+            itemdone = 0;
+            downloadEnabled = false;
+            pdfDownloadList.clear();
           });
         }
         EasyLoading.showToast("Cleared successfully");
@@ -476,50 +503,45 @@ class _DetailBookPageState extends State<DetailBookPage> {
   Widget build(BuildContext context) {
     final double screenWidth = MediaQuery.of(context).size.width;
     return Scaffold(
-      body: Container(
-        color: Colors.white,
-        child: Scaffold(
+      body: Scaffold(
+        backgroundColor: Colors.white,
+        appBar: AppBar(
+          foregroundColor: Colors.black87,
           backgroundColor: Colors.white,
-          appBar: AppBar(
-            titleSpacing: 0,
-            flexibleSpace: Container(
-              decoration: const BoxDecoration(
-                gradient: LinearGradient(
-                  colors: [
-                    Color.fromRGBO(141, 31, 31, 1),
-                    Color.fromRGBO(141, 31, 31, 1),
-                  ],
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
-                ),
+          titleSpacing: 0,
+          flexibleSpace: Container(
+            decoration: const BoxDecoration(
+              gradient: LinearGradient(
+                colors: [Colors.white, Colors.white],
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
               ),
             ),
-            // backgroundColor: const Color(0xff500a34),
-            title: Row(
-              children: [
-                Expanded(
-                  child: Text(
-                    widget.bookInfo.title,
-                    style: GoogleFonts.prompt(
-                      textStyle: const TextStyle(
-                          color: Colors.white,
-                          fontWeight: FontWeight.w900,
-                          fontSize: 18),
-                    ),
-                    overflow: TextOverflow.ellipsis,
-                    maxLines: 1,
-                    softWrap: true,
-                  ),
-                ),
-              ],
-            ),
           ),
-          body: Container(
-            color: Colors.white,
-            padding: const EdgeInsets.only(left: 20, right: 20),
-            child: SingleChildScrollView(
-              child: Column(
-                children: [
+          title: Row(
+            children: [
+              Expanded(
+                child: Text(
+                  widget.bookInfo.title,
+                  style: GoogleFonts.prompt(
+                    textStyle:
+                        const TextStyle(color: Colors.black87, fontSize: 18),
+                  ),
+                  overflow: TextOverflow.ellipsis,
+                  maxLines: 1,
+                  softWrap: true,
+                ),
+              ),
+            ],
+          ),
+        ),
+        body: Container(
+          color: Colors.white,
+          padding: const EdgeInsets.only(left: 20, right: 20),
+          child: Stack(
+            children: <Widget>[
+              ListView(
+                children: <Widget>[
                   const SizedBox(
                     height: 30,
                   ),
@@ -528,48 +550,40 @@ class _DetailBookPageState extends State<DetailBookPage> {
                       Material(
                         elevation: 0.0,
                         child: widget.bookInfo.picurl.isNotEmpty
-                            ? CachedNetworkImage(
-                                imageUrl: '$mainHost${widget.bookInfo.picurl}',
-                                imageBuilder: (context, imageProvider) =>
-                                    Container(
-                                  height: 200,
-                                  width: 150,
-                                  decoration: BoxDecoration(
-                                    borderRadius: BorderRadius.circular(10),
-                                    boxShadow: [
-                                      BoxShadow(
+                            ? Image.network(
+                                'https://lms.smsaccess.net/${widget.bookInfo.picurl}',
+                                height: 200,
+                                width: 150,
+                                fit: BoxFit.fill,
+                                loadingBuilder:
+                                    (context, child, loadingProgress) {
+                                  if (loadingProgress == null) return child;
+                                  return const Center(
+                                    child: CircularProgressIndicator(),
+                                  );
+                                },
+                                errorBuilder: (context, error, stackTrace) {
+                                  return Container(
+                                    height: 200,
+                                    width: 150,
+                                    decoration: BoxDecoration(
+                                      color: Colors.white,
+                                      borderRadius: BorderRadius.circular(10),
+                                      boxShadow: [
+                                        BoxShadow(
                                           color: Colors.grey.withOpacity(0.3),
                                           spreadRadius: 8,
                                           blurRadius: 10,
-                                          offset: const Offset(0, 3))
-                                    ],
-                                    image: DecorationImage(
-                                      image: imageProvider,
-                                      fit: BoxFit.fill,
+                                          offset: const Offset(0, 3),
+                                        ),
+                                      ],
+                                      image: const DecorationImage(
+                                        image: AssetImage("img/CK_logo.png"),
+                                        fit: BoxFit.contain,
+                                      ),
                                     ),
-                                  ),
-                                ),
-                                placeholder: (context, url) =>
-                                    const CircularProgressIndicator(),
-                                errorWidget: (context, url, error) => Container(
-                                  height: 200,
-                                  width: 150,
-                                  decoration: BoxDecoration(
-                                    color: Colors.white,
-                                    borderRadius: BorderRadius.circular(10),
-                                    boxShadow: [
-                                      BoxShadow(
-                                          color: Colors.grey.withOpacity(0.3),
-                                          spreadRadius: 8,
-                                          blurRadius: 10,
-                                          offset: const Offset(0, 3))
-                                    ],
-                                    image: const DecorationImage(
-                                      image: AssetImage("img/CK_logo.png"),
-                                      fit: BoxFit.contain,
-                                    ),
-                                  ),
-                                ),
+                                  );
+                                },
                               )
                             : Container(
                                 height: 200,
@@ -594,7 +608,7 @@ class _DetailBookPageState extends State<DetailBookPage> {
                             ),
                             Text(
                               widget.bookInfo.title,
-                              style: GoogleFonts.prompt(
+                              style: GoogleFonts.workSans(
                                 textStyle: const TextStyle(
                                   color: Colors.black87,
                                   fontWeight: FontWeight.w900,
@@ -609,7 +623,7 @@ class _DetailBookPageState extends State<DetailBookPage> {
                               children: [
                                 Text(
                                   "Lessons: ",
-                                  style: GoogleFonts.prompt(
+                                  style: GoogleFonts.workSans(
                                     fontWeight: FontWeight.bold,
                                     fontSize: 14,
                                     color: Colors.black38,
@@ -618,7 +632,7 @@ class _DetailBookPageState extends State<DetailBookPage> {
                                 lessonLength > 0
                                     ? Text(
                                         "$lessonLength items",
-                                        style: GoogleFonts.prompt(
+                                        style: GoogleFonts.workSans(
                                           fontWeight: FontWeight.bold,
                                           fontSize: 14,
                                           color: const Color(0xcd292735),
@@ -647,7 +661,7 @@ class _DetailBookPageState extends State<DetailBookPage> {
                               children: [
                                 Text(
                                   "Author:",
-                                  style: GoogleFonts.prompt(
+                                  style: GoogleFonts.workSans(
                                     color: Colors.black38,
                                     fontSize: 13,
                                     fontWeight: FontWeight.bold,
@@ -671,86 +685,92 @@ class _DetailBookPageState extends State<DetailBookPage> {
                       ),
                     ],
                   ),
-                  const SizedBox(
-                    height: 10,
-                  ),
+                  const SizedBox(height: 10),
                   const Divider(),
-                  const SizedBox(
-                    height: 5,
-                  ),
+                  const SizedBox(height: 10),
                   Row(
                     children: [
                       Text(
-                        "DETAILS",
-                        style: GoogleFonts.prompt(
+                        "Details",
+                        style: GoogleFonts.workSans(
                           textStyle: const TextStyle(
                               color: Colors.black87,
-                              fontWeight: FontWeight.w800,
+                              fontWeight: FontWeight.bold,
                               fontSize: 18),
                         ),
                       ),
                     ],
                   ),
-                  const SizedBox(
-                    height: 20,
-                  ),
+                  const SizedBox(height: 20),
                   Padding(
                     padding: const EdgeInsets.only(right: 0),
                     child: Text(
-                      'Presented by CK Children\'s Publishing, this book offers visual learning and integration for your benefit.'
+                      'An engaging and educational ICT eBook designed for young learners. This interactive eBook takes student on a journey into the world of technology and digital literacy, introducing key concepts and skills in a fun and accessible way.'
                           .toUpperCase(),
-                      style: GoogleFonts.prompt(
-                          color: Colors.black87, fontSize: 15),
+                      style: GoogleFonts.workSans(
+                        color: Colors.black87,
+                        fontSize: 13,
+                      ),
                     ),
                   ),
                   const SizedBox(
                     height: 10,
                   ),
                   if (downloadEnabled) const Divider(),
-                  if (pdfTitle.isNotEmpty)
+                  if (downloadEnabled)
+                    Text(
+                      "Item done ${itemdone.toString()}/${pdfDownloadList.length}",
+                    ),
+                  const SizedBox(height: 5),
+                  if (pdfTitle.isNotEmpty && downloadEnabled)
                     SizedBox(
                       child: Text(
                         pdfTitle,
-                        style: GoogleFonts.prompt(
+                        style: GoogleFonts.workSans(
                           textStyle: const TextStyle(
-                            color: Colors.blue,
-                            fontWeight: FontWeight.normal,
+                            color: Colors.black,
                             fontSize: 14,
                           ),
                         ),
                         overflow:
                             TextOverflow.ellipsis, // Truncate text with ...
                         maxLines: 1, // Display only one line
-                        textAlign: TextAlign.start,
+                        textAlign: TextAlign.center,
                       ),
                     ),
+                  const SizedBox(height: 10),
                   if (downloadEnabled)
                     LinearPercentIndicator(
+                      barRadius: const Radius.circular(10.0),
                       lineHeight: 20.0,
                       percent: downloadProgress <= 1.0 ? downloadProgress : 0,
                       center: Text(
-                          '${(downloadProgress * 100).toStringAsFixed(2)}%'),
+                        '${(downloadProgress * 100).toStringAsFixed(2)}%',
+                        style: const TextStyle(color: Colors.white),
+                      ),
                       progressColor: Colors.blue,
                     ),
-                  const SizedBox(
-                    height: 5,
-                  ),
+                  const SizedBox(height: 5),
                   if (downloadEnabled)
-                    finished
-                        ? const Text(
-                            'Finished.',
-                          )
-                        : const Text(
-                            'Please wait while the file is being downloaded.',
-                          ),
-                  const SizedBox(
-                    height: 25,
-                  ),
-                  Container(
-                    padding: const EdgeInsets.only(right: 0),
-                    child: Row(
-                      children: [
-                        ElevatedButton(
+                    Text(
+                      finished
+                          ? 'Finished.'
+                          : 'Please wait while the file is being downloaded.',
+                      textAlign: TextAlign.center,
+                      style: GoogleFonts.workSans(),
+                    ),
+                  const SizedBox(height: 25),
+                ],
+              ),
+              // Floating button at the bottom
+              Align(
+                alignment: Alignment.bottomCenter,
+                child: Container(
+                  padding: const EdgeInsets.only(bottom: 20),
+                  child: Row(
+                    children: [
+                      Expanded(
+                        child: ElevatedButton(
                           onPressed: isButtonEnabled
                               ? () {
                                   if (existBook) {
@@ -780,17 +800,17 @@ class _DetailBookPageState extends State<DetailBookPage> {
                                 }
                               : null,
                           style: ElevatedButton.styleFrom(
+                              elevation: 10.0,
                               foregroundColor: Colors.white,
-                              backgroundColor:
-                                  isButtonEnabled ? Colors.green : Colors.grey,
+                              backgroundColor: isButtonEnabled
+                                  ? Colors.green[600]
+                                  : Colors.grey,
                               shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(8),
+                                borderRadius: BorderRadius.circular(23.0),
                               ),
                               padding: const EdgeInsets.only(
-                                left: 15.0,
-                                right: 15.0,
-                                top: 10.0,
-                                bottom: 10.0,
+                                top: 12.0,
+                                bottom: 12.0,
                               ),
                               alignment: Alignment.center),
                           child: Row(
@@ -798,7 +818,7 @@ class _DetailBookPageState extends State<DetailBookPage> {
                             children: [
                               Icon(
                                 existBook
-                                    ? Icons.remove_red_eye_rounded
+                                    ? Icons.menu_book_rounded
                                     : Icons.download,
                                 color:
                                     Colors.white, // Set the icon color to red
@@ -808,9 +828,9 @@ class _DetailBookPageState extends State<DetailBookPage> {
                                       8.0), // Add some spacing between icon and text
                               Text(
                                 " ${existBook ? 'Explore' : 'Download'} ",
-                                style: GoogleFonts.prompt(
+                                style: GoogleFonts.workSans(
                                   textStyle: const TextStyle(
-                                    fontWeight: FontWeight.w800,
+                                    fontWeight: FontWeight.bold,
                                     fontSize: 18,
                                   ),
                                 ),
@@ -818,65 +838,33 @@ class _DetailBookPageState extends State<DetailBookPage> {
                             ],
                           ),
                         ),
-                        const Spacer(),
-                        if (existBook)
-                          ElevatedButton(
-                            onPressed: isButtonEnabled2
-                                ? () {
-                                    showClearConfirmationDialog(context);
-                                  }
-                                : null,
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: Colors
-                                  .transparent, // Set the background color to transparent
-                              foregroundColor: Colors
-                                  .red, // Set the text color when using a transparent button
-                              elevation:
-                                  0, // No elevation for a transparent button
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(8),
-                                side: const BorderSide(
-                                    color: Colors
-                                        .red), // Add an outline using a red border
-                              ),
-                              padding: const EdgeInsets.only(
-                                left: 15.0,
-                                right: 15.0,
-                                top: 10.0,
-                                bottom: 10.0,
-                              ),
-                              alignment: Alignment.center,
-                            ),
-                            child: Row(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                const Icon(
-                                  Icons.delete,
-                                  color:
-                                      Colors.red, // Set the icon color to red
-                                ),
-                                const SizedBox(
-                                    width:
-                                        8.0), // Add some spacing between icon and text
-                                Text(
-                                  "Clear",
-                                  style: GoogleFonts.prompt(
-                                    textStyle: const TextStyle(
-                                      fontWeight: FontWeight.w800,
-                                      fontSize: 18,
-                                    ),
-                                  ),
-                                ),
-                              ],
-                            ),
-                          )
-                      ],
-                    ),
+                      ),
+                      if (existBook) const SizedBox(width: 15),
+                      if (existBook)
+                        ElevatedButton(
+                          onPressed: isButtonEnabled2
+                              ? () {
+                                  showClearConfirmationDialog(context);
+                                }
+                              : null,
+                          style: ElevatedButton.styleFrom(
+                            elevation: 10,
+                            backgroundColor: Colors.red,
+                            padding: const EdgeInsets.all(
+                                14), // Adjust the padding as needed
+                            shape:
+                                const CircleBorder(), // Use CircleBorder to make it circular
+                          ),
+                          child: const Icon(
+                            Icons.delete_sweep_sharp,
+                            color: Colors.white,
+                          ),
+                        )
+                    ],
                   ),
-                  // const Divider(color: Color(0xFF7b8ea3)),
-                ],
+                ),
               ),
-            ),
+            ],
           ),
         ),
       ),
